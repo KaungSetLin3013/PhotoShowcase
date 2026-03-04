@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Framed — Photo Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@300;400&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #080809;
+    --surf:      #111113;
+    --surf2:     #18181c;
+    --surf3:     #1f1f24;
+    --border:    rgba(255,255,255,0.07);
+    --text:      #ddd8ce;
+    --muted:     rgba(221,216,206,0.38);
+    --gold:      #c9a84c;
+    --gold-dim:  rgba(201,168,76,0.13);
+    --red:       #b94035;
+    --green-dim: rgba(61,122,92,0.12);
+    --shadow:    rgba(0,0,0,0.6);
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Fira Code', monospace; font-size: 13px;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  body::after {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+    opacity: 0.45;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 1.2rem;
+    padding: 1.3rem 2.2rem;
+    background: var(--surf); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.85rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
+  .logo em { color: var(--gold); font-style: italic; }
+  .tagline { font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
+  .header-right { margin-left: auto; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+
+  /* ── BUTTONS ── */
+  button {
+    font-family: 'Fira Code', monospace; font-size: 0.67rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.52rem 1rem; border: 1px solid var(--border); background: var(--surf2); color: var(--text);
+    cursor: pointer; transition: all 0.17s; white-space: nowrap;
+  }
+  button:hover { background: var(--surf3); border-color: rgba(255,255,255,0.14); }
+  button.primary { background: var(--gold); border-color: var(--gold); color: #08080a; font-weight: 600; }
+  button.primary:hover { background: #deba5e; border-color: #deba5e; }
+  button.danger { background: rgba(185,64,53,0.1); border-color: rgba(185,64,53,0.4); color: #d46b5e; }
+  button.danger:hover { background: var(--red); border-color: var(--red); color: #fff; }
+
+  #btn-random {
+    background: var(--gold-dim); border-color: rgba(201,168,76,0.28); color: var(--gold);
+    display: flex; align-items: center; gap: 0.45rem;
+  }
+  #btn-random:hover { background: var(--gold); color: #08080a; border-color: var(--gold); }
+  #btn-random .dice { display: inline-block; font-size: 0.95rem; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  #btn-random:hover .dice { transform: rotate(180deg) scale(1.2); }
+  #btn-random.spinning .dice { animation: spinDice 0.38s ease forwards; }
+  @keyframes spinDice { from { transform: rotate(0deg) scale(1.3); } to { transform: rotate(360deg) scale(1); } }
+
+  .vdiv { width: 1px; height: 1.3rem; background: var(--border); }
+
+  /* ── STATS BAR ── */
+  #stats-bar {
+    display: none; align-items: center; gap: 2rem; flex-wrap: wrap;
+    padding: 0.65rem 2.2rem;
+    background: var(--surf); border-bottom: 1px solid var(--border);
+    font-size: 0.58rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted);
+  }
+  #stats-bar.visible { display: flex; }
+  .stat-val { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--gold); margin-right: 0.3rem; }
+
+  /* ── MAIN ── */
+  main { padding: 1.8rem 2.2rem; }
+
+  /* ── UPLOAD ZONES ── */
+  .upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.2rem; }
+  @media (max-width: 560px) { .upload-row { grid-template-columns: 1fr; } }
+  .drop-zone {
+    border: 1.5px dashed rgba(201,168,76,0.3); background: var(--gold-dim);
+    padding: 1.8rem 1.2rem; text-align: center; cursor: pointer; transition: all 0.22s; user-select: none;
+  }
+  .drop-zone.folder { border-color: rgba(61,122,92,0.38); background: var(--green-dim); }
+  .drop-zone.over { border-style: solid; border-color: var(--gold); background: rgba(201,168,76,0.18); }
+  .drop-zone.folder.over { border-color: #3d7a5c; background: rgba(61,122,92,0.2); }
+  .dz-icon { font-size: 1.7rem; margin-bottom: 0.55rem; display: block; opacity: 0.65; }
+  .dz-title { font-family: 'Cormorant Garamond', serif; font-size: 1rem; margin-bottom: 0.3rem; color: var(--text); opacity: 0.82; }
+  .dz-sub { font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+  /* ── SECTION HEADER ── */
+  .sec-header {
+    display: flex; align-items: center; gap: 0.9rem; flex-wrap: wrap;
+    margin-bottom: 1.3rem; padding-bottom: 0.65rem; border-bottom: 1px solid var(--border);
+  }
+  .sec-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 400; }
+  .sec-count { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.1em; }
+
+  /* ── SORT CONTROLS ── */
+  .sort-bar { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; flex-wrap: wrap; }
+  .sort-label { font-size: 0.55rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); padding-right: 0.2rem; }
+  .sort-btn {
+    font-family: 'Fira Code', monospace; font-size: 0.58rem; letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 0.28rem 0.62rem; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .sort-btn:hover { border-color: rgba(255,255,255,0.16); color: var(--text); background: var(--surf3); }
+  .sort-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+  .sort-dir {
+    font-family: 'Fira Code', monospace; font-size: 0.82rem; line-height: 1;
+    padding: 0.26rem 0.5rem; border: 1px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; transition: all 0.15s; user-select: none;
+  }
+  .sort-dir:hover { border-color: rgba(255,255,255,0.16); color: var(--text); }
+  .sort-dir.active { border-color: var(--gold); color: var(--gold); }
+
+  /* ── GALLERY ── */
+  #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 1.1rem; }
+
+  .photo-card { position: relative; cursor: pointer; }
+  .photo-frame {
+    aspect-ratio: 4/3; overflow: hidden; background: var(--surf2);
+    border: 1px solid var(--border); box-shadow: 0 4px 22px var(--shadow);
+    transition: all 0.22s; position: relative;
+  }
+  .photo-card:hover .photo-frame { transform: translateY(-4px); box-shadow: 0 14px 40px var(--shadow); border-color: rgba(255,255,255,0.12); }
+  .photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+  .photo-card:hover .photo-frame img { transform: scale(1.06); }
+  .photo-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 55%);
+    opacity: 0; transition: opacity 0.25s;
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 0.8rem;
+  }
+  .photo-card:hover .photo-overlay { opacity: 1; }
+  .po-name { font-size: 0.62rem; color: rgba(255,255,255,0.88); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 0.45rem; }
+  .po-actions { display: flex; gap: 0.35rem; }
+  .po-btn {
+    font-family: 'Fira Code', monospace; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.22rem 0.48rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.82); transition: all 0.17s;
+  }
+  .po-btn:hover { background: rgba(255,255,255,0.22); }
+  .po-btn.del:hover { background: var(--red); border-color: var(--red); color: #fff; }
+  .photo-meta { margin-top: 0.42rem; }
+  .photo-meta p { font-size: 0.57rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.6; }
+  .offline-placeholder {
+    width: 100%; height: 100%; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 0.35rem; color: var(--muted);
+  }
+  .offline-placeholder span { font-size: 1.6rem; opacity: 0.3; }
+  .offline-placeholder small { font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.5; }
+
+  /* ── EMPTY ── */
+  #empty { text-align: center; padding: 4rem 2rem; display: none; }
+  #empty.visible { display: block; }
+  #empty .e-icon { font-size: 2.8rem; opacity: 0.22; display: block; margin-bottom: 1.1rem; }
+  #empty .e-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--muted); margin-bottom: 0.4rem; }
+  #empty .e-sub { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); opacity: 0.55; }
+
+  /* ── LIGHTBOX ── */
+  #lightbox {
+    display: none; position: fixed; inset: 0; z-index: 500;
+    background: rgba(4,4,5,0.97); align-items: center; justify-content: center;
+  }
+  #lightbox.open { display: flex; animation: lbFadeIn 0.18s ease; }
+  @keyframes lbFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { 0% { opacity:0; transform:scale(0.83) rotate(-2.5deg); } 100% { opacity:1; transform:scale(1) rotate(0deg); } }
+  @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+  #lb-bg { position: absolute; inset: 0; cursor: zoom-out; }
+  #lb-inner {
+    position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center;
+    max-width: 92vw; animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  #lb-img { max-width: 82vw; max-height: 72vh; object-fit: contain; display: block; box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05); }
+  #lb-footer { display: flex; align-items: center; gap: 1.4rem; margin-top: 1.3rem; }
+  .lb-nav {
+    width: 2.8rem; height: 2.8rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.75); font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Fira Code', monospace; transition: all 0.17s; user-select: none;
+  }
+  .lb-nav:hover { background: rgba(255,255,255,0.18); color: #fff; transform: scale(1.1); }
+  #lb-caption { text-align: center; min-width: 150px; font-size: 0.58rem; letter-spacing: 0.13em; text-transform: uppercase; color: rgba(255,255,255,0.38); }
+  #lb-caption strong { display: block; color: rgba(255,255,255,0.72); margin-bottom: 0.2rem; font-weight: 400; font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 0.9rem; text-transform: none; letter-spacing: 0; }
+  #lb-rand {
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.28); color: var(--gold);
+    font-family: 'Fira Code', monospace; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0 0.9rem; height: 2.8rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+    transition: all 0.17s; user-select: none; white-space: nowrap;
+  }
+  #lb-rand:hover { background: var(--gold); color: #08080a; border-color: var(--gold); }
+  #lb-rand .dice { display: inline-block; font-size: 0.9rem; transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  #lb-rand:hover .dice { transform: rotate(180deg) scale(1.2); }
+  #lb-rand.spinning .dice { animation: spinDice 0.38s ease forwards; }
+
+  #lb-close {
+    position: fixed; top: 1.4rem; right: 1.4rem; width: 2.3rem; height: 2.3rem;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.55); font-size: 0.9rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.17s; z-index: 10;
+  }
+  #lb-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+  /* ── CONFIRM MODAL ── */
+  #confirm-overlay {
+    display: none; position: fixed; inset: 0; z-index: 600;
+    background: rgba(0,0,0,0.78); align-items: center; justify-content: center;
+  }
+  #confirm-overlay.open { display: flex; animation: lbFadeIn 0.15s ease; }
+  #confirm-box {
+    background: var(--surf2); border: 1px solid var(--border);
+    padding: 2rem 2.2rem; max-width: 340px; width: 90%;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7); animation: slideUp 0.2s ease;
+  }
+  #confirm-box h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; margin-bottom: 0.55rem; font-weight: 600; }
+  #confirm-box p { font-size: 0.65rem; color: var(--muted); line-height: 1.7; margin-bottom: 1.4rem; }
+  .confirm-actions { display: flex; gap: 0.65rem; justify-content: flex-end; }
+
+  /* ── PROGRESS ── */
+  #progress-wrap {
+    display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 400;
+    background: var(--surf2); border-top: 1px solid var(--border);
+    padding: 0.65rem 2.2rem; gap: 1rem; align-items: center; animation: slideUp 0.2s ease;
+  }
+  #progress-wrap.visible { display: flex; }
+  #progress-label { font-size: 0.6rem; letter-spacing: 0.1em; color: var(--muted); white-space: nowrap; }
+  #progress-track { flex: 1; height: 2px; background: var(--border); }
+  #progress-fill { height: 100%; background: var(--gold); transition: width 0.14s ease; width: 0%; }
+  #progress-count { font-size: 0.6rem; color: var(--gold); white-space: nowrap; min-width: 55px; text-align: right; }
+
+  /* ── TOAST ── */
+  #toast {
+    display: none; position: fixed; bottom: 2rem; right: 2rem; z-index: 700;
+    background: var(--surf2); color: var(--text); border: 1px solid var(--border); border-left: 3px solid var(--gold);
+    font-size: 0.65rem; letter-spacing: 0.07em; padding: 0.7rem 1.3rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5); animation: slideUp 0.22s ease; max-width: 280px;
+  }
+  #toast.visible { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Frame<em>d</em></div>
+  <div class="tagline">Local Photo Showcase</div>
+  <div class="header-right">
+    <button id="btn-random" style="display:none" onclick="openRandom()">
+      <span class="dice">🎲</span> Random
+    </button>
+    <div class="vdiv" id="rand-divider" style="display:none"></div>
+    <button class="danger" id="btn-clear" style="display:none" onclick="confirmClear()">Clear All</button>
+    <button onclick="fileInput.click()">+ Photos</button>
+    <button class="primary" onclick="folderInput.click()">📁 Folder</button>
+  </div>
+</header>
+
+<div id="stats-bar">
+  <div><span class="stat-val" id="stat-count">0</span> Photos</div>
+  <div><span class="stat-val" id="stat-size">0</span> Total size</div>
+  <div><span class="stat-val" id="stat-date">—</span> Last added</div>
+</div>
+
+<main>
+  <div class="upload-row">
+    <div class="drop-zone" id="dz-files"
+      onclick="fileInput.click()"
+      ondragover="dzOver(event,'dz-files')"
+      ondragleave="dzLeave('dz-files')"
+      ondrop="dzDrop(event)">
+      <span class="dz-icon" id="dz-files-icon">🖼️</span>
+      <div class="dz-title">Drop photos here</div>
+      <div class="dz-sub">or click to browse · jpg png gif webp</div>
+    </div>
+    <div class="drop-zone folder" id="dz-folder"
+      onclick="folderInput.click()"
+      ondragover="dzOver(event,'dz-folder')"
+      ondragleave="dzLeave('dz-folder')"
+      ondrop="dzDrop(event)">
+      <span class="dz-icon" id="dz-folder-icon">📁</span>
+      <div class="dz-title">Upload a folder</div>
+      <div class="dz-sub">or click to select folder · all images inside</div>
+    </div>
+  </div>
+
+  <div id="collection-section" style="display:none">
+    <div class="sec-header">
+      <div class="sec-title">Collection</div>
+      <div class="sec-count" id="sec-count"></div>
+      <div class="sort-bar">
+        <span class="sort-label">Sort</span>
+        <button class="sort-btn active" data-sort="added" onclick="setSort('added')">Added</button>
+        <button class="sort-btn" data-sort="name"  onclick="setSort('name')">Name</button>
+        <button class="sort-btn" data-sort="size"  onclick="setSort('size')">Size</button>
+        <button class="sort-btn" data-sort="type"  onclick="setSort('type')">Type</button>
+        <div class="vdiv"></div>
+        <button class="sort-dir active" id="sort-dir-btn" onclick="toggleDir()">↓</button>
+      </div>
+    </div>
+    <div id="gallery"></div>
+  </div>
+
+  <div id="empty" class="visible">
+    <span class="e-icon">📷</span>
+    <div class="e-title">Your showcase awaits</div>
+    <div class="e-sub">Add photos or upload a folder to begin</div>
+  </div>
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <div id="lb-bg" onclick="closeLightbox()"></div>
+  <button id="lb-close" onclick="closeLightbox()">✕</button>
+  <div id="lb-inner">
+    <img id="lb-img" src="" alt="" />
+    <div id="lb-footer">
+      <button class="lb-nav" id="lb-prev" onclick="navLightbox(-1)">←</button>
+      <div id="lb-caption"><strong id="lb-name"></strong><span id="lb-pos"></span></div>
+      <button class="lb-nav" id="lb-next" onclick="navLightbox(1)">→</button>
+      <button id="lb-rand" onclick="lbRandom()"><span class="dice">🎲</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirm-overlay" onclick="closeConfirm()">
+  <div id="confirm-box" onclick="event.stopPropagation()">
+    <h3>Clear all photos?</h3>
+    <p id="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button onclick="closeConfirm()">Cancel</button>
+      <button class="danger" onclick="doClear()">Yes, clear all</button>
+    </div>
+  </div>
+</div>
+
+<div id="progress-wrap">
+  <span id="progress-label">Loading photos…</span>
+  <div id="progress-track"><div id="progress-fill"></div></div>
+  <span id="progress-count"></span>
+</div>
+
+<div id="toast"></div>
+
+<input type="file" id="fileInput"   accept="image/*" multiple hidden onchange="addPhotos(this.files)" />
+<input type="file" id="folderInput" accept="image/*" multiple hidden webkitdirectory directory onchange="addPhotos(this.files)" />
+
+<script>
+  const STORAGE_KEY = 'framed-photos-v1';
+  let photos     = [];
+  let sortKey    = 'added';
+  let sortAsc    = true;
+  let lbIdx      = null;   // index into sortedPhotos()
+  let toastTimer = null;
+
+  // ── Sort ──────────────────────────────────────────────────
+  function sortedPhotos() {
+    return [...photos].sort((a, b) => {
+      let va, vb;
+      switch (sortKey) {
+        case 'name': va = a.name.toLowerCase(); vb = b.name.toLowerCase(); break;
+        case 'size': va = a.size || 0;          vb = b.size || 0;          break;
+        case 'type': va = ext(a.name);           vb = ext(b.name);          break;
+        default:     va = a._seq;                vb = b._seq;               break;
+      }
+      return va < vb ? (sortAsc ? -1 : 1) : va > vb ? (sortAsc ? 1 : -1) : 0;
+    });
+  }
+
+  function ext(n) { return n.split('.').pop().toLowerCase(); }
+
+  function setSort(key) {
+    if (sortKey === key) { toggleDir(); return; }
+    sortKey = key;
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === key));
+    render();
+  }
+
+  function toggleDir() {
+    sortAsc = !sortAsc;
+    document.getElementById('sort-dir-btn').textContent = sortAsc ? '↓' : '↑';
+    render();
+  }
+
+  // ── Storage ───────────────────────────────────────────────
+  async function loadFromStorage() {
+    try {
+      const r = await window.storage.get(STORAGE_KEY);
+      if (r && r.value)
+        photos = JSON.parse(r.value).map((p, i) => ({ ...p, url: null, offline: true, _seq: i }));
+    } catch { /* first load */ }
+    render();
+  }
+
+  async function saveToStorage() {
+    try {
+      await window.storage.set(STORAGE_KEY, JSON.stringify(
+        photos.map(({ id, name, size, date }) => ({ id, name, size, date }))
+      ));
+    } catch { showToast('Storage error'); }
+  }
+
+  // ── Add photos ────────────────────────────────────────────
+  async function addPhotos(fileList) {
+    const imgs = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    if (!imgs.length) { showToast('No image files found'); return; }
+
+    const BATCH = 50;
+    const date = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    let loaded = 0;
+    const total = imgs.length;
+    const seqStart = photos.length;
+
+    showProgress(0, total);
+
+    for (let i = 0; i < imgs.length; i += BATCH) {
+      imgs.slice(i, i + BATCH).forEach((f, bi) => {
+        photos.push({ id: Date.now() + Math.random(), name: f.name, size: f.size, date,
+          url: URL.createObjectURL(f), offline: false, _file: f, _seq: seqStart + i + bi });
+        loaded++;
+      });
+      showProgress(loaded, total);
+      render();
+      await new Promise(res => requestAnimationFrame(res));
+    }
+
+    saveToStorage();
+    hideProgress();
+    showToast(`✓ ${loaded} photo${loaded !== 1 ? 's' : ''} added`);
+    document.getElementById('fileInput').value = '';
+    document.getElementById('folderInput').value = '';
+  }
+
+  // ── Delete ────────────────────────────────────────────────
+  function deletePhoto(id, e) {
+    e && e.stopPropagation();
+    const p = photos.find(p => p.id === id);
+    if (p?.url && !p.offline) URL.revokeObjectURL(p.url);
+    photos = photos.filter(p => p.id !== id);
+    saveToStorage(); closeLightbox(); render();
+    showToast('Photo removed');
+  }
+
+  // ── Clear ─────────────────────────────────────────────────
+  function confirmClear() {
+    document.getElementById('confirm-msg').textContent =
+      `This will permanently remove all ${photos.length} photo${photos.length !== 1 ? 's' : ''}. This cannot be undone.`;
+    document.getElementById('confirm-overlay').classList.add('open');
+  }
+  function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); }
+  function doClear() {
+    closeConfirm();
+    photos.forEach(p => { if (p.url && !p.offline) URL.revokeObjectURL(p.url); });
+    photos = []; saveToStorage(); render();
+    showToast('Showcase cleared');
+  }
+
+  // ── Random ────────────────────────────────────────────────
+  function openRandom() {
+    if (!photos.length) return;
+    const btn = document.getElementById('btn-random');
+    btn.classList.add('spinning');
+    setTimeout(() => btn.classList.remove('spinning'), 400);
+
+    const sorted = sortedPhotos();
+    let idx;
+    if (sorted.length === 1) {
+      idx = 0;
+    } else {
+      do { idx = Math.floor(Math.random() * sorted.length); } while (idx === lbIdx);
+    }
+
+    if (document.getElementById('lightbox').classList.contains('open')) {
+      lbIdx = idx;
+      refreshLightbox(true); // animate the jump
+    } else {
+      openLightbox(idx, true);
+    }
+  }
+
+  // ── Lightbox ──────────────────────────────────────────────
+  function openLightbox(idx, animate) {
+    lbIdx = idx;
+    refreshLightbox(!!animate);
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function refreshLightbox(animate) {
+    const sorted = sortedPhotos();
+    const p = sorted[lbIdx];
+    if (!p) return;
+
+    const img = document.getElementById('lb-img');
+    img.src = (p.url && !p.offline) ? p.url : '';
+    img.alt = p.name;
+    document.getElementById('lb-name').textContent = (p.offline || !p.url) ? p.name + ' (re-upload to view)' : p.name;
+    document.getElementById('lb-pos').textContent  = `${lbIdx + 1} of ${sorted.length}`;
+
+    // Only play pop animation when explicitly requested (first open / random jump)
+    if (animate) {
+      const inner = document.getElementById('lb-inner');
+      inner.style.animation = 'none';
+      requestAnimationFrame(() => { inner.style.animation = ''; });
+    }
+
+    const showNav = sorted.length > 1;
+    document.getElementById('lb-prev').style.visibility = showNav ? 'visible' : 'hidden';
+    document.getElementById('lb-next').style.visibility = showNav ? 'visible' : 'hidden';
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+    lbIdx = null;
+  }
+
+  function lbRandom() {
+    if (photos.length < 2) return;
+    const btn = document.getElementById('lb-rand');
+    btn.classList.add('spinning');
+    setTimeout(() => btn.classList.remove('spinning'), 400);
+    const len = sortedPhotos().length;
+    let idx;
+    do { idx = Math.floor(Math.random() * len); } while (idx === lbIdx);
+    lbIdx = idx;
+    refreshLightbox(true);
+  }
+
+  function navLightbox(dir) {
+    if (lbIdx === null) return;
+    const len = sortedPhotos().length;
+    lbIdx = (lbIdx + dir + len) % len;
+    refreshLightbox(false); // sequential step — no pop animation
+  }
+
+  // ── Keyboard ──────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('confirm-overlay').classList.contains('open')) {
+      if (e.key === 'Escape') closeConfirm();
+      if (e.key === 'Enter') doClear();
+      return;
+    }
+    if (!document.getElementById('lightbox').classList.contains('open')) return;
+    if (e.key === 'ArrowRight') navLightbox(1);
+    else if (e.key === 'ArrowLeft') navLightbox(-1);
+    else if (e.key === 'Escape') closeLightbox();
+  });
+
+  // ── Drag & drop ───────────────────────────────────────────
+  function dzOver(e, id) {
+    e.preventDefault();
+    document.getElementById(id).classList.add('over');
+    document.getElementById(id === 'dz-files' ? 'dz-files-icon' : 'dz-folder-icon').textContent = id === 'dz-files' ? '📥' : '📂';
+  }
+  function dzLeave(id) {
+    document.getElementById(id).classList.remove('over');
+    document.getElementById(id === 'dz-files' ? 'dz-files-icon' : 'dz-folder-icon').textContent = id === 'dz-files' ? '🖼️' : '📁';
+  }
+  function dzDrop(e) {
+    e.preventDefault();
+    ['dz-files','dz-folder'].forEach(id => document.getElementById(id).classList.remove('over'));
+    document.getElementById('dz-files-icon').textContent = '🖼️';
+    document.getElementById('dz-folder-icon').textContent = '📁';
+    addPhotos(e.dataTransfer.files);
+  }
+
+  // ── Progress / Toast ──────────────────────────────────────
+  function showProgress(n, total) {
+    document.getElementById('progress-wrap').classList.add('visible');
+    document.getElementById('progress-fill').style.width = `${(n / total) * 100}%`;
+    document.getElementById('progress-count').textContent = `${n} / ${total}`;
+  }
+  function hideProgress() { document.getElementById('progress-wrap').classList.remove('visible'); }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('visible'), 2600);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  function fmtSize(b) { return b > 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.round(b / 1e3) + ' KB'; }
+
+  function makeCard(photo, idx) {
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.dataset.id = photo.id;
+    const src = (photo.url && !photo.offline) ? photo.url : '';
+    const n = photo.name.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    card.innerHTML = `
+      <div class="photo-frame">
+        ${src ? `<img src="${src}" alt="${n}" loading="lazy" />`
+              : `<div class="offline-placeholder"><span>📷</span><small>Re-upload to view</small></div>`}
+        <div class="photo-overlay">
+          <div class="po-name">${n}</div>
+          <div class="po-actions">
+            <button class="po-btn view-btn">View</button>
+            <button class="po-btn del">Remove</button>
+          </div>
+        </div>
+      </div>
+      <div class="photo-meta">
+        <p>${n}</p>
+        <p>${photo.date} · ${fmtSize(photo.size || 0)}</p>
+      </div>`;
+    card.querySelector('.view-btn').addEventListener('click', e => { e.stopPropagation(); openLightbox(idx, true); });
+    card.querySelector('.del').addEventListener('click', e => deletePhoto(photo.id, e));
+    card.addEventListener('click', () => openLightbox(idx, true));
+    return card;
+  }
+
+  function render() {
+    const gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';
+
+    if (photos.length === 0) {
+      document.getElementById('collection-section').style.display = 'none';
+      document.getElementById('empty').classList.add('visible');
+    } else {
+      document.getElementById('collection-section').style.display = 'block';
+      document.getElementById('empty').classList.remove('visible');
+      sortedPhotos().forEach((p, i) => gallery.appendChild(makeCard(p, i)));
+      document.getElementById('sec-count').textContent =
+        `${photos.length} image${photos.length !== 1 ? 's' : ''} · stored locally`;
+    }
+
+    // Stats
+    const total = photos.reduce((s, p) => s + (p.size || 0), 0);
+    document.getElementById('stat-count').textContent = photos.length;
+    document.getElementById('stat-size').textContent  = fmtSize(total);
+    document.getElementById('stat-date').textContent  = photos.length ? photos[photos.length - 1].date : '—';
+    document.getElementById('stats-bar').classList.toggle('visible', photos.length > 0);
+
+    // Header buttons
+    const has = photos.length > 0, many = photos.length > 1;
+    document.getElementById('btn-clear').style.display    = has  ? '' : 'none';
+    document.getElementById('btn-random').style.display   = many ? '' : 'none';
+    document.getElementById('rand-divider').style.display = many ? '' : 'none';
+  }
+
+  loadFromStorage();
+</script>
+</body>
+</html>
