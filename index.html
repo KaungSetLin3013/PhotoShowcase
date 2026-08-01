@@ -10,10 +10,11 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:        #080809;
+    --bg:        #08080a;
     --surf:      #111113;
     --surf2:     #18181c;
     --surf3:     #1f1f24;
+    --surf4:     #26262c;
     --border:    rgba(255,255,255,0.07);
     --text:      #ddd8ce;
     --muted:     rgba(221,216,206,0.38);
@@ -22,6 +23,7 @@
     --red:       #b94035;
     --green-dim: rgba(61,122,92,0.12);
     --shadow:    rgba(0,0,0,0.6);
+    --card-min:  195px;
   }
 
   html, body { height: 100%; }
@@ -38,15 +40,20 @@
 
   /* ── HEADER ── */
   header {
+    position: sticky; top: 0; z-index: 100; overflow: hidden;
     display: flex; align-items: center; flex-wrap: wrap; gap: 1.2rem;
     padding: 1.3rem 2.2rem;
     background: var(--surf); border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 100;
   }
-  .logo { font-family: 'Cormorant Garamond', serif; font-size: 1.85rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
+  header::before {
+    content: ''; position: absolute; top: -70px; left: 90px; width: 340px; height: 220px;
+    background: radial-gradient(circle, rgba(201,168,76,0.09), transparent 70%);
+    pointer-events: none;
+  }
+  .logo { position: relative; font-family: 'Cormorant Garamond', serif; font-size: 1.85rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
   .logo em { color: var(--gold); font-style: italic; }
-  .tagline { font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
-  .header-right { margin-left: auto; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+  .tagline { position: relative; font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
+  .header-right { position: relative; margin-left: auto; display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
 
   /* ── BUTTONS ── */
   button {
@@ -83,21 +90,7 @@
   .stat-val { font-family: 'Cormorant Garamond', serif; font-size: 1rem; color: var(--gold); margin-right: 0.3rem; }
 
   /* ── MAIN ── */
-  main { padding: 1.8rem 2.2rem; }
-
-  /* ── UPLOAD ZONES ── */
-  .upload-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2.2rem; }
-  @media (max-width: 560px) { .upload-row { grid-template-columns: 1fr; } }
-  .drop-zone {
-    border: 1.5px dashed rgba(201,168,76,0.3); background: var(--gold-dim);
-    padding: 1.8rem 1.2rem; text-align: center; cursor: pointer; transition: all 0.22s; user-select: none;
-  }
-  .drop-zone.folder { border-color: rgba(61,122,92,0.38); background: var(--green-dim); }
-  .drop-zone.over { border-style: solid; border-color: var(--gold); background: rgba(201,168,76,0.18); }
-  .drop-zone.folder.over { border-color: #3d7a5c; background: rgba(61,122,92,0.2); }
-  .dz-icon { font-size: 1.7rem; margin-bottom: 0.55rem; display: block; opacity: 0.65; }
-  .dz-title { font-family: 'Cormorant Garamond', serif; font-size: 1rem; margin-bottom: 0.3rem; color: var(--text); opacity: 0.82; }
-  .dz-sub { font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  main { padding: 1.8rem 2.2rem 4rem; }
 
   /* ── SECTION HEADER ── */
   .sec-header {
@@ -107,16 +100,27 @@
   .sec-title { font-family: 'Cormorant Garamond', serif; font-size: 1.25rem; font-weight: 400; }
   .sec-count { font-size: 0.58rem; color: var(--muted); letter-spacing: 0.1em; }
 
-  /* ── SORT CONTROLS ── */
+  /* ── SEARCH ── */
+  .search-wrap { position: relative; display: flex; align-items: center; }
+  .search-icon { position: absolute; left: 0.6rem; font-size: 0.68rem; opacity: 0.4; pointer-events: none; }
+  .search-input {
+    font-family: 'Fira Code', monospace; font-size: 0.64rem; letter-spacing: 0.03em;
+    background: var(--surf2); border: 1px solid var(--border); color: var(--text);
+    padding: 0.42rem 0.6rem 0.42rem 1.7rem; width: 140px; transition: all 0.2s;
+  }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { outline: none; border-color: var(--gold); width: 190px; background: var(--surf3); }
+
+  /* ── SORT / DENSITY CONTROLS ── */
   .sort-bar { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; flex-wrap: wrap; }
   .sort-label { font-size: 0.55rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); padding-right: 0.2rem; }
-  .sort-btn {
+  .sort-btn, .density-btn {
     font-family: 'Fira Code', monospace; font-size: 0.58rem; letter-spacing: 0.07em; text-transform: uppercase;
     padding: 0.28rem 0.62rem; border: 1px solid var(--border); background: transparent;
     color: var(--muted); cursor: pointer; transition: all 0.15s; white-space: nowrap;
   }
-  .sort-btn:hover { border-color: rgba(255,255,255,0.16); color: var(--text); background: var(--surf3); }
-  .sort-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+  .sort-btn:hover, .density-btn:hover { border-color: rgba(255,255,255,0.16); color: var(--text); background: var(--surf3); }
+  .sort-btn.active, .density-btn.active { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
   .sort-dir {
     font-family: 'Fira Code', monospace; font-size: 0.82rem; line-height: 1;
     padding: 0.26rem 0.5rem; border: 1px solid var(--border); background: transparent;
@@ -126,16 +130,28 @@
   .sort-dir.active { border-color: var(--gold); color: var(--gold); }
 
   /* ── GALLERY ── */
-  #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 1.1rem; }
+  #gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--card-min), 1fr)); gap: 1.1rem; }
 
-  .photo-card { position: relative; cursor: pointer; }
+  .photo-card { position: relative; cursor: pointer; animation: cardIn 0.4s ease both; }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
   .photo-frame {
-    aspect-ratio: 4/3; overflow: hidden; background: var(--surf2);
+    aspect-ratio: 4/3; overflow: hidden; position: relative;
     border: 1px solid var(--border); box-shadow: 0 4px 22px var(--shadow);
-    transition: all 0.22s; position: relative;
+    transition: all 0.22s;
+    background: linear-gradient(100deg, var(--surf2) 25%, var(--surf3) 45%, var(--surf2) 65%);
+    background-size: 220% 100%;
+    animation: shimmer 1.6s ease-in-out infinite;
   }
+  .photo-card.loaded .photo-frame { animation: none; background: var(--surf2); }
+  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
   .photo-card:hover .photo-frame { transform: translateY(-4px); box-shadow: 0 14px 40px var(--shadow); border-color: rgba(255,255,255,0.12); }
-  .photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+  .photo-frame img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    opacity: 0; transition: opacity 0.35s ease, transform 0.4s;
+  }
+  .photo-card.loaded .photo-frame img { opacity: 1; }
   .photo-card:hover .photo-frame img { transform: scale(1.06); }
   .photo-overlay {
     position: absolute; inset: 0;
@@ -155,36 +171,37 @@
   .po-btn.del:hover { background: var(--red); border-color: var(--red); color: #fff; }
   .photo-meta { margin-top: 0.42rem; }
   .photo-meta p { font-size: 0.57rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.6; }
-  .offline-placeholder {
-    width: 100%; height: 100%; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 0.35rem; color: var(--muted);
-  }
-  .offline-placeholder span { font-size: 1.6rem; opacity: 0.3; }
-  .offline-placeholder small { font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.5; }
 
-  /* ── EMPTY ── */
-  #empty { text-align: center; padding: 4rem 2rem; display: none; }
-  #empty.visible { display: block; }
-  #empty .e-icon { font-size: 2.8rem; opacity: 0.22; display: block; margin-bottom: 1.1rem; }
-  #empty .e-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--muted); margin-bottom: 0.4rem; }
-  #empty .e-sub { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); opacity: 0.55; }
+  /* ── EMPTY / NO RESULTS ── */
+  #empty, #no-results { text-align: center; padding: 4rem 2rem; display: none; }
+  #empty.visible, #no-results.visible { display: block; }
+  #empty .e-icon, #no-results .e-icon { font-size: 2.8rem; opacity: 0.22; display: block; margin-bottom: 1.1rem; }
+  #empty .e-title, #no-results .e-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--muted); margin-bottom: 0.4rem; }
+  #empty .e-sub, #no-results .e-sub { font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); opacity: 0.55; }
+
+  #scroll-sentinel { height: 1px; width: 100%; }
 
   /* ── LIGHTBOX ── */
   #lightbox {
     display: none; position: fixed; inset: 0; z-index: 500;
-    background: rgba(4,4,5,0.97); align-items: center; justify-content: center;
+    background: rgba(4,4,5,0.94); align-items: center; justify-content: center;
   }
   #lightbox.open { display: flex; animation: lbFadeIn 0.18s ease; }
   @keyframes lbFadeIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes popIn { 0% { opacity:0; transform:scale(0.83) rotate(-2.5deg); } 100% { opacity:1; transform:scale(1) rotate(0deg); } }
   @keyframes slideUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
-  #lb-bg { position: absolute; inset: 0; cursor: zoom-out; }
+  #lb-bgblur {
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    filter: blur(46px) brightness(0.32) saturate(1.15); transform: scale(1.15);
+    transition: background-image 0.25s ease; z-index: 0;
+  }
+  #lb-bg { position: absolute; inset: 0; cursor: zoom-out; z-index: 0; }
   #lb-inner {
     position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center;
     max-width: 92vw; animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
   }
-  #lb-img { max-width: 82vw; max-height: 72vh; object-fit: contain; display: block; box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05); }
+  #lb-img { max-width: 82vw; max-height: 72vh; object-fit: contain; display: block; box-shadow: 0 40px 100px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.05); background: var(--surf2); }
   #lb-footer { display: flex; align-items: center; gap: 1.4rem; margin-top: 1.3rem; }
   .lb-nav {
     width: 2.8rem; height: 2.8rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
@@ -213,6 +230,53 @@
     display: flex; align-items: center; justify-content: center; transition: all 0.17s; z-index: 10;
   }
   #lb-close:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+  /* ── RANDOM MODE (TikTok-style vertical feed) ── */
+  #random-mode {
+    display: none; position: fixed; inset: 0; z-index: 800;
+    background: #000; overflow: hidden; touch-action: none;
+  }
+  #random-mode.open { display: block; animation: lbFadeIn 0.16s ease; }
+
+  .rm-slide {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    transition: transform 0.34s cubic-bezier(0.22,1,0.36,1), opacity 0.34s ease;
+    transform: translateY(0); opacity: 1;
+  }
+  .rm-slide.enter-from-bottom, .rm-slide.exit-to-bottom { transform: translateY(100%); opacity: 0; }
+  .rm-slide.enter-from-top,    .rm-slide.exit-to-top    { transform: translateY(-100%); opacity: 0; }
+
+  .rm-bgblur {
+    position: absolute; inset: 0; background-size: cover; background-position: center;
+    filter: blur(50px) brightness(0.3) saturate(1.15); transform: scale(1.15);
+  }
+  .rm-img {
+    position: relative; z-index: 1; max-width: 92vw; max-height: 82vh; object-fit: contain;
+    box-shadow: 0 30px 90px rgba(0,0,0,0.8); opacity: 0; transition: opacity 0.25s ease;
+  }
+  .rm-img.loaded { opacity: 1; }
+
+  #rm-track { position: absolute; inset: 0; }
+
+  #rm-caption {
+    position: absolute; left: 0; right: 0; bottom: 2.6rem; z-index: 5;
+    text-align: center; pointer-events: none;
+  }
+  #rm-caption strong {
+    display: block; color: rgba(255,255,255,0.85); font-weight: 400; font-style: italic;
+    font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; margin-bottom: 0.35rem;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+  }
+  #rm-hint {
+    font-size: 0.56rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.4);
+  }
+  #rm-close {
+    position: fixed; top: 1.4rem; right: 1.4rem; z-index: 810; width: 2.3rem; height: 2.3rem;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.7); font-size: 0.9rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.17s;
+  }
+  #rm-close:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
   /* ── CONFIRM MODAL ── */
   #confirm-overlay {
@@ -257,7 +321,7 @@
   <div class="logo">Frame<em>d</em></div>
   <div class="tagline">Local Photo Showcase</div>
   <div class="header-right">
-    <button id="btn-random" style="display:none" onclick="openRandom()">
+    <button id="btn-random" style="display:none" onclick="openRandomMode()">
       <span class="dice">🎲</span> Random
     </button>
     <div class="vdiv" id="rand-divider" style="display:none"></div>
@@ -274,31 +338,14 @@
 </div>
 
 <main>
-  <div class="upload-row">
-    <div class="drop-zone" id="dz-files"
-      onclick="fileInput.click()"
-      ondragover="dzOver(event,'dz-files')"
-      ondragleave="dzLeave('dz-files')"
-      ondrop="dzDrop(event)">
-      <span class="dz-icon" id="dz-files-icon">🖼️</span>
-      <div class="dz-title">Drop photos here</div>
-      <div class="dz-sub">or click to browse · jpg png gif webp</div>
-    </div>
-    <div class="drop-zone folder" id="dz-folder"
-      onclick="folderInput.click()"
-      ondragover="dzOver(event,'dz-folder')"
-      ondragleave="dzLeave('dz-folder')"
-      ondrop="dzDrop(event)">
-      <span class="dz-icon" id="dz-folder-icon">📁</span>
-      <div class="dz-title">Upload a folder</div>
-      <div class="dz-sub">or click to select folder · all images inside</div>
-    </div>
-  </div>
-
   <div id="collection-section" style="display:none">
     <div class="sec-header">
       <div class="sec-title">Collection</div>
       <div class="sec-count" id="sec-count"></div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" id="search-input" type="text" placeholder="Search by name…" />
+      </div>
       <div class="sort-bar">
         <span class="sort-label">Sort</span>
         <button class="sort-btn active" data-sort="added" onclick="setSort('added')">Added</button>
@@ -307,9 +354,19 @@
         <button class="sort-btn" data-sort="type"  onclick="setSort('type')">Type</button>
         <div class="vdiv"></div>
         <button class="sort-dir active" id="sort-dir-btn" onclick="toggleDir()">↓</button>
+        <div class="vdiv"></div>
+        <button class="density-btn" data-d="0" onclick="setDensity(0)">S</button>
+        <button class="density-btn active" data-d="1" onclick="setDensity(1)">M</button>
+        <button class="density-btn" data-d="2" onclick="setDensity(2)">L</button>
       </div>
     </div>
     <div id="gallery"></div>
+    <div id="no-results">
+      <span class="e-icon">⌕</span>
+      <div class="e-title">No matches</div>
+      <div class="e-sub" id="nr-sub">Nothing found for that search</div>
+    </div>
+    <div id="scroll-sentinel"></div>
   </div>
 
   <div id="empty" class="visible">
@@ -322,6 +379,7 @@
 <!-- LIGHTBOX -->
 <div id="lightbox">
   <div id="lb-bg" onclick="closeLightbox()"></div>
+  <div id="lb-bgblur"></div>
   <button id="lb-close" onclick="closeLightbox()">✕</button>
   <div id="lb-inner">
     <img id="lb-img" src="" alt="" />
@@ -334,8 +392,16 @@
   </div>
 </div>
 
+<!-- RANDOM MODE (TikTok-style vertical swipe feed) -->
+<div id="random-mode">
+  <button id="rm-close" onclick="closeRandomMode()">✕</button>
+  <div id="rm-track"></div>
+  <div id="rm-caption"><strong id="rm-name"></strong><span id="rm-hint">Swipe up for next</span></div>
+</div>
+
 <!-- CONFIRM MODAL -->
 <div id="confirm-overlay" onclick="closeConfirm()">
+
   <div id="confirm-box" onclick="event.stopPropagation()">
     <h3>Clear all photos?</h3>
     <p id="confirm-msg"></p>
@@ -347,7 +413,7 @@
 </div>
 
 <div id="progress-wrap">
-  <span id="progress-label">Loading photos…</span>
+  <span id="progress-label">Processing photos…</span>
   <div id="progress-track"><div id="progress-fill"></div></div>
   <span id="progress-count"></span>
 </div>
@@ -358,58 +424,143 @@
 <input type="file" id="folderInput" accept="image/*" multiple hidden webkitdirectory directory onchange="addPhotos(this.files)" />
 
 <script>
-  const STORAGE_KEY = 'framed-photos-v1';
-  let photos     = [];
-  let sortKey    = 'added';
-  let sortAsc    = true;
-  let lbIdx      = null;   // index into sortedPhotos()
-  let toastTimer = null;
+  // ══════════════════════════════════════════════════════════
+  // Storage: IndexedDB (works on GitHub Pages / any static host,
+  // persists between visits, no server required).
+  //   store "meta"  → lightweight records (id, name, size, date, seq)
+  //   store "blobs" → { id, thumb: Blob, full: Blob }  fetched on demand
+  // ══════════════════════════════════════════════════════════
+  const DB_NAME = 'framed-db', DB_VERSION = 1;
+  let db;
 
-  // ── Sort ──────────────────────────────────────────────────
-  function sortedPhotos() {
-    return [...photos].sort((a, b) => {
-      let va, vb;
-      switch (sortKey) {
-        case 'name': va = a.name.toLowerCase(); vb = b.name.toLowerCase(); break;
-        case 'size': va = a.size || 0;          vb = b.size || 0;          break;
-        case 'type': va = ext(a.name);           vb = ext(b.name);          break;
-        default:     va = a._seq;                vb = b._seq;               break;
-      }
-      return va < vb ? (sortAsc ? -1 : 1) : va > vb ? (sortAsc ? 1 : -1) : 0;
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = e => {
+        const d = e.target.result;
+        if (!d.objectStoreNames.contains('meta'))  d.createObjectStore('meta',  { keyPath: 'id' });
+        if (!d.objectStoreNames.contains('blobs')) d.createObjectStore('blobs', { keyPath: 'id' });
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror   = () => reject(req.error);
     });
   }
+  function idbGetAll(store) {
+    return new Promise((resolve, reject) => {
+      const req = db.transaction(store, 'readonly').objectStore(store).getAll();
+      req.onsuccess = () => resolve(req.result);
+      req.onerror   = () => reject(req.error);
+    });
+  }
+  function idbGet(store, id) {
+    return new Promise((resolve, reject) => {
+      const req = db.transaction(store, 'readonly').objectStore(store).get(id);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror   = () => reject(req.error);
+    });
+  }
+  function idbDelete(store, id) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).delete(id);
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+    });
+  }
+  function idbClear(store) {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(store, 'readwrite');
+      tx.objectStore(store).clear();
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error);
+    });
+  }
+  function txDone(tx) {
+    return new Promise((resolve, reject) => {
+      tx.oncomplete = resolve; tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error);
+    });
+  }
+  function genId() {
+    return (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
+  }
 
+  // ── App state ─────────────────────────────────────────────
+  let photosMeta   = [];   // all metadata, always in memory (cheap)
+  let activeList   = [];   // filtered + sorted view for current render
+  let renderedCount = 0;
+  const PAGE_SIZE   = 60;  // DOM cards per batch (keeps 600+ photo galleries smooth)
+
+  let sortKey    = 'added';
+  let sortAsc    = true;
+  let searchQuery = '';
+  let densityIdx  = 1;
+  const DENSITY   = [150, 195, 260];
+
+  let lbIdx      = null;   // index into activeList
+  let toastTimer = null;
+
+  const thumbCache = new Map();   // id -> objectURL (kept for session)
+  const fullCache  = new Map();   // id -> objectURL (small LRU, full-res is heavy)
+  const FULL_CACHE_MAX = 6;
+
+  let imgObserver, sentinelObserver;
+  let touchStartX = null;
+
+  // ── Thumbnail generation (client-side resize, once per upload) ──
+  async function makeThumb(file, maxDim = 460, quality = 0.8) {
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+      const w = Math.max(1, Math.round(bitmap.width * scale));
+      const h = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      if (bitmap.close) bitmap.close();
+      const blob = await new Promise(res => canvas.toBlob(b => res(b), 'image/webp', quality));
+      return blob || file;
+    } catch {
+      return file; // fallback: reuse original as thumb
+    }
+  }
+
+  // ── Sort / filter ─────────────────────────────────────────
   function ext(n) { return n.split('.').pop().toLowerCase(); }
+
+  function sortComparator(a, b) {
+    let va, vb;
+    switch (sortKey) {
+      case 'name': va = a.name.toLowerCase(); vb = b.name.toLowerCase(); break;
+      case 'size': va = a.size || 0;          vb = b.size || 0;          break;
+      case 'type': va = ext(a.name);          vb = ext(b.name);          break;
+      default:     va = a.seq;                vb = b.seq;                break;
+    }
+    return va < vb ? (sortAsc ? -1 : 1) : va > vb ? (sortAsc ? 1 : -1) : 0;
+  }
+
+  function computeList() {
+    let list = photosMeta;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(p => p.name.toLowerCase().includes(q));
+    }
+    return [...list].sort(sortComparator);
+  }
 
   function setSort(key) {
     if (sortKey === key) { toggleDir(); return; }
     sortKey = key;
     document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === key));
-    render();
+    resetAndRender();
   }
-
   function toggleDir() {
     sortAsc = !sortAsc;
     document.getElementById('sort-dir-btn').textContent = sortAsc ? '↓' : '↑';
-    render();
+    resetAndRender();
   }
-
-  // ── Storage ───────────────────────────────────────────────
-  async function loadFromStorage() {
-    try {
-      const r = await window.storage.get(STORAGE_KEY);
-      if (r && r.value)
-        photos = JSON.parse(r.value).map((p, i) => ({ ...p, url: null, offline: true, _seq: i }));
-    } catch { /* first load */ }
-    render();
-  }
-
-  async function saveToStorage() {
-    try {
-      await window.storage.set(STORAGE_KEY, JSON.stringify(
-        photos.map(({ id, name, size, date }) => ({ id, name, size, date }))
-      ));
-    } catch { showToast('Storage error'); }
+  function setDensity(i) {
+    densityIdx = i;
+    document.querySelectorAll('.density-btn').forEach((b, idx) => b.classList.toggle('active', idx === i));
+    document.getElementById('gallery').style.setProperty('--card-min', DENSITY[i] + 'px');
   }
 
   // ── Add photos ────────────────────────────────────────────
@@ -417,138 +568,299 @@
     const imgs = Array.from(fileList).filter(f => f.type.startsWith('image/'));
     if (!imgs.length) { showToast('No image files found'); return; }
 
-    const BATCH = 50;
-    const date = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-    let loaded = 0;
+    const BATCH = 16;
     const total = imgs.length;
-    const seqStart = photos.length;
+    let done = 0;
+    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    let seq = photosMeta.length ? Math.max(...photosMeta.map(p => p.seq)) + 1 : 0;
 
     showProgress(0, total);
 
     for (let i = 0; i < imgs.length; i += BATCH) {
-      imgs.slice(i, i + BATCH).forEach((f, bi) => {
-        photos.push({ id: Date.now() + Math.random(), name: f.name, size: f.size, date,
-          url: URL.createObjectURL(f), offline: false, _file: f, _seq: seqStart + i + bi });
-        loaded++;
-      });
-      showProgress(loaded, total);
-      render();
+      const chunk = imgs.slice(i, i + BATCH);
+      const thumbs = await Promise.all(chunk.map(f => makeThumb(f)));
+
+      try {
+        const tx = db.transaction(['meta', 'blobs'], 'readwrite');
+        const metaStore = tx.objectStore('meta');
+        const blobStore = tx.objectStore('blobs');
+        const chunkMetas = [];
+        chunk.forEach((f, j) => {
+          const id = genId();
+          const meta = { id, name: f.name, size: f.size, date, seq: seq++ };
+          metaStore.put(meta);
+          blobStore.put({ id, thumb: thumbs[j], full: f });
+          chunkMetas.push(meta);
+        });
+        await txDone(tx);
+        photosMeta.push(...chunkMetas);
+      } catch {
+        showToast('Storage error — device may be low on space');
+        break;
+      }
+
+      done += chunk.length;
+      showProgress(done, total);
       await new Promise(res => requestAnimationFrame(res));
     }
 
-    saveToStorage();
     hideProgress();
-    showToast(`✓ ${loaded} photo${loaded !== 1 ? 's' : ''} added`);
+    showToast(`✓ ${done} photo${done !== 1 ? 's' : ''} added`);
     document.getElementById('fileInput').value = '';
     document.getElementById('folderInput').value = '';
+    resetAndRender();
   }
 
-  // ── Delete ────────────────────────────────────────────────
-  function deletePhoto(id, e) {
+  // ── Delete / clear ────────────────────────────────────────
+  async function deletePhoto(id, e) {
     e && e.stopPropagation();
-    const p = photos.find(p => p.id === id);
-    if (p?.url && !p.offline) URL.revokeObjectURL(p.url);
-    photos = photos.filter(p => p.id !== id);
-    saveToStorage(); closeLightbox(); render();
+    await idbDelete('meta', id);
+    await idbDelete('blobs', id);
+    photosMeta = photosMeta.filter(p => p.id !== id);
+    revoke(thumbCache, id); revoke(fullCache, id);
+    closeLightbox();
+    resetAndRender();
     showToast('Photo removed');
   }
+  function revoke(cache, id) {
+    if (cache.has(id)) { URL.revokeObjectURL(cache.get(id)); cache.delete(id); }
+  }
 
-  // ── Clear ─────────────────────────────────────────────────
   function confirmClear() {
     document.getElementById('confirm-msg').textContent =
-      `This will permanently remove all ${photos.length} photo${photos.length !== 1 ? 's' : ''}. This cannot be undone.`;
+      `This will permanently remove all ${photosMeta.length} photo${photosMeta.length !== 1 ? 's' : ''}. This cannot be undone.`;
     document.getElementById('confirm-overlay').classList.add('open');
   }
   function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); }
-  function doClear() {
+
+  async function doClear() {
     closeConfirm();
-    photos.forEach(p => { if (p.url && !p.offline) URL.revokeObjectURL(p.url); });
-    photos = []; saveToStorage(); render();
+    await idbClear('meta');
+    await idbClear('blobs');
+    thumbCache.forEach(u => URL.revokeObjectURL(u)); thumbCache.clear();
+    fullCache.forEach(u => URL.revokeObjectURL(u));  fullCache.clear();
+    photosMeta = [];
+    resetAndRender();
     showToast('Showcase cleared');
   }
 
-  // ── Random ────────────────────────────────────────────────
-  function openRandom() {
-    if (!photos.length) return;
+  // ── Random Mode (TikTok-style vertical swipe feed) ────────
+  let rmCurrentId = null;
+  let rmHistory   = [];   // ids shown before the current one, for swipe-down/back
+  let rmQueue     = [];   // shuffled upcoming ids
+  let rmActiveEl  = null;
+  let rmBusy      = false;
+  let rmTouchStartY = null;
+  let rmWheelLock = false;
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function refillQueue() {
+    let ids = activeList.map(p => p.id);
+    if (rmCurrentId && ids.length > 1) ids = ids.filter(id => id !== rmCurrentId);
+    rmQueue = shuffle(ids);
+  }
+
+  function nextRandomId() {
+    if (!rmQueue.length) refillQueue();
+    return rmQueue.shift();
+  }
+
+  function buildSlideEl() {
+    const el = document.createElement('div');
+    el.className = 'rm-slide';
+    el.innerHTML = `<div class="rm-bgblur"></div><img class="rm-img" alt="" />`;
+    return el;
+  }
+
+  async function paintSlide(el, id) {
+    const p = photosMeta.find(x => x.id === id);
+    const img = el.querySelector('.rm-img');
+    const bg  = el.querySelector('.rm-bgblur');
+    img.alt = p ? p.name : '';
+    const thumbUrl = await getThumbUrl(id);
+    if (el.isConnected === false) return; // slide was removed before it loaded
+    if (thumbUrl) { img.src = thumbUrl; bg.style.backgroundImage = `url(${thumbUrl})`; }
+    img.classList.add('loaded');
+    if (rmCurrentId === id) document.getElementById('rm-name').textContent = p ? p.name : '';
+    const fullUrl = await getFullUrl(id);
+    if (fullUrl && img.isConnected) img.src = fullUrl;
+  }
+
+  function openRandomMode() {
+    if (!activeList.length) return;
     const btn = document.getElementById('btn-random');
     btn.classList.add('spinning');
     setTimeout(() => btn.classList.remove('spinning'), 400);
+    closeLightbox();
+    document.getElementById('random-mode').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('rm-track').innerHTML = '';
+    rmHistory = []; rmQueue = [];
+    rmCurrentId = activeList[Math.floor(Math.random() * activeList.length)].id;
+    const el = buildSlideEl();
+    document.getElementById('rm-track').appendChild(el);
+    rmActiveEl = el;
+    paintSlide(el, rmCurrentId);
+  }
 
-    const sorted = sortedPhotos();
-    let idx;
-    if (sorted.length === 1) {
-      idx = 0;
-    } else {
-      do { idx = Math.floor(Math.random() * sorted.length); } while (idx === lbIdx);
-    }
+  function closeRandomMode() {
+    document.getElementById('random-mode').classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('rm-track').innerHTML = '';
+    rmActiveEl = null; rmCurrentId = null; rmBusy = false;
+  }
 
-    if (document.getElementById('lightbox').classList.contains('open')) {
-      lbIdx = idx;
-      refreshLightbox(true); // animate the jump
+  async function rmGo(dir) {
+    if (rmBusy || !activeList.length) return;
+    let targetId;
+    if (dir === 1) {
+      targetId = nextRandomId();
+      if (rmCurrentId) rmHistory.push(rmCurrentId);
     } else {
-      openLightbox(idx, true);
+      if (!rmHistory.length) return;
+      targetId = rmHistory.pop();
     }
+    if (targetId == null) return;
+
+    rmBusy = true;
+    const newEl = buildSlideEl();
+    newEl.classList.add(dir === 1 ? 'enter-from-bottom' : 'enter-from-top');
+    document.getElementById('rm-track').appendChild(newEl);
+    rmCurrentId = targetId;
+    await paintSlide(newEl, targetId);
+
+    void newEl.offsetWidth; // force reflow so the enter class is committed before we animate
+    const oldEl = rmActiveEl;
+    requestAnimationFrame(() => {
+      newEl.classList.remove('enter-from-bottom', 'enter-from-top');
+      if (oldEl) oldEl.classList.add(dir === 1 ? 'exit-to-top' : 'exit-to-bottom');
+    });
+    rmActiveEl = newEl;
+    setTimeout(() => { if (oldEl) oldEl.remove(); rmBusy = false; }, 360);
+  }
+
+  function lbRandom() { closeLightbox(); openRandomMode(); }
+
+  document.getElementById('random-mode').addEventListener('touchstart', e => {
+    rmTouchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.getElementById('random-mode').addEventListener('touchend', e => {
+    if (rmTouchStartY === null) return;
+    const dy = e.changedTouches[0].clientY - rmTouchStartY;
+    if (Math.abs(dy) > 55) rmGo(dy < 0 ? 1 : -1);
+    rmTouchStartY = null;
+  }, { passive: true });
+  document.getElementById('random-mode').addEventListener('wheel', e => {
+    e.preventDefault();
+    if (rmWheelLock) return;
+    rmWheelLock = true;
+    rmGo(e.deltaY > 0 ? 1 : -1);
+    setTimeout(() => { rmWheelLock = false; }, 420);
+  }, { passive: false });
+
+  // ── Lazy thumb / full fetch ──────────────────────────────
+  async function getThumbUrl(id) {
+    if (thumbCache.has(id)) return thumbCache.get(id);
+    const rec = await idbGet('blobs', id);
+    if (!rec || !rec.thumb) return null;
+    const url = URL.createObjectURL(rec.thumb);
+    thumbCache.set(id, url);
+    return url;
+  }
+  async function getFullUrl(id) {
+    if (fullCache.has(id)) {
+      const url = fullCache.get(id);
+      fullCache.delete(id); fullCache.set(id, url);
+      return url;
+    }
+    const rec = await idbGet('blobs', id);
+    if (!rec || !rec.full) return null;
+    const url = URL.createObjectURL(rec.full);
+    fullCache.set(id, url);
+    if (fullCache.size > FULL_CACHE_MAX) {
+      const oldest = fullCache.keys().next().value;
+      URL.revokeObjectURL(fullCache.get(oldest));
+      fullCache.delete(oldest);
+    }
+    return url;
   }
 
   // ── Lightbox ──────────────────────────────────────────────
+  function openLightboxFor(id) {
+    const idx = activeList.findIndex(p => p.id === id);
+    if (idx === -1) return;
+    openLightbox(idx, true);
+  }
   function openLightbox(idx, animate) {
     lbIdx = idx;
-    refreshLightbox(!!animate);
     document.getElementById('lightbox').classList.add('open');
+    refreshLightbox(!!animate);
   }
 
-  function refreshLightbox(animate) {
-    const sorted = sortedPhotos();
-    const p = sorted[lbIdx];
+  async function refreshLightbox(animate) {
+    const p = activeList[lbIdx];
     if (!p) return;
+    const myId = p.id;
 
     const img = document.getElementById('lb-img');
-    img.src = (p.url && !p.offline) ? p.url : '';
-    img.alt = p.name;
-    document.getElementById('lb-name').textContent = (p.offline || !p.url) ? p.name + ' (re-upload to view)' : p.name;
-    document.getElementById('lb-pos').textContent  = `${lbIdx + 1} of ${sorted.length}`;
+    const bg  = document.getElementById('lb-bgblur');
+    document.getElementById('lb-name').textContent = p.name;
+    document.getElementById('lb-pos').textContent   = `${lbIdx + 1} of ${activeList.length}`;
 
-    // Only play pop animation when explicitly requested (first open / random jump)
     if (animate) {
       const inner = document.getElementById('lb-inner');
       inner.style.animation = 'none';
       requestAnimationFrame(() => { inner.style.animation = ''; });
     }
 
-    const showNav = sorted.length > 1;
+    const showNav = activeList.length > 1;
     document.getElementById('lb-prev').style.visibility = showNav ? 'visible' : 'hidden';
     document.getElementById('lb-next').style.visibility = showNav ? 'visible' : 'hidden';
+
+    // instant low-res placeholder
+    const thumbUrl = await getThumbUrl(myId);
+    if (lbIdx === null || activeList[lbIdx]?.id !== myId) return; // navigated away meanwhile
+    if (thumbUrl) { img.src = thumbUrl; bg.style.backgroundImage = `url(${thumbUrl})`; }
+
+    // swap in full resolution
+    const fullUrl = await getFullUrl(myId);
+    if (lbIdx === null || activeList[lbIdx]?.id !== myId) return;
+    if (fullUrl) img.src = fullUrl;
+
+    // quietly warm the next photo's full image for snappier nav
+    const next = activeList[(lbIdx + 1) % activeList.length];
+    if (next && next.id !== myId) getFullUrl(next.id);
   }
 
   function closeLightbox() {
     document.getElementById('lightbox').classList.remove('open');
     lbIdx = null;
   }
-
-  function lbRandom() {
-    if (photos.length < 2) return;
-    const btn = document.getElementById('lb-rand');
-    btn.classList.add('spinning');
-    setTimeout(() => btn.classList.remove('spinning'), 400);
-    const len = sortedPhotos().length;
-    let idx;
-    do { idx = Math.floor(Math.random() * len); } while (idx === lbIdx);
-    lbIdx = idx;
-    refreshLightbox(true);
-  }
-
   function navLightbox(dir) {
-    if (lbIdx === null) return;
-    const len = sortedPhotos().length;
-    lbIdx = (lbIdx + dir + len) % len;
-    refreshLightbox(false); // sequential step — no pop animation
+    if (lbIdx === null || !activeList.length) return;
+    lbIdx = (lbIdx + dir + activeList.length) % activeList.length;
+    refreshLightbox(false);
   }
 
-  // ── Keyboard ──────────────────────────────────────────────
+  // ── Keyboard / touch ──────────────────────────────────────
   document.addEventListener('keydown', e => {
     if (document.getElementById('confirm-overlay').classList.contains('open')) {
       if (e.key === 'Escape') closeConfirm();
       if (e.key === 'Enter') doClear();
+      return;
+    }
+    if (document.getElementById('random-mode').classList.contains('open')) {
+      if (e.key === 'Escape') closeRandomMode();
+      else if (e.key === 'ArrowUp') rmGo(-1);
+      else if (e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); rmGo(1); }
       return;
     }
     if (!document.getElementById('lightbox').classList.contains('open')) return;
@@ -556,24 +868,21 @@
     else if (e.key === 'ArrowLeft') navLightbox(-1);
     else if (e.key === 'Escape') closeLightbox();
   });
+  const lbInner = document.getElementById('lb-inner');
+  lbInner.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  lbInner.addEventListener('touchend', e => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) navLightbox(dx > 0 ? -1 : 1);
+    touchStartX = null;
+  }, { passive: true });
 
-  // ── Drag & drop ───────────────────────────────────────────
-  function dzOver(e, id) {
+  // ── Drag & drop (anywhere on the page) ────────────────────
+  window.addEventListener('dragover', e => e.preventDefault());
+  window.addEventListener('drop', e => {
     e.preventDefault();
-    document.getElementById(id).classList.add('over');
-    document.getElementById(id === 'dz-files' ? 'dz-files-icon' : 'dz-folder-icon').textContent = id === 'dz-files' ? '📥' : '📂';
-  }
-  function dzLeave(id) {
-    document.getElementById(id).classList.remove('over');
-    document.getElementById(id === 'dz-files' ? 'dz-files-icon' : 'dz-folder-icon').textContent = id === 'dz-files' ? '🖼️' : '📁';
-  }
-  function dzDrop(e) {
-    e.preventDefault();
-    ['dz-files','dz-folder'].forEach(id => document.getElementById(id).classList.remove('over'));
-    document.getElementById('dz-files-icon').textContent = '🖼️';
-    document.getElementById('dz-folder-icon').textContent = '📁';
-    addPhotos(e.dataTransfer.files);
-  }
+    if (e.dataTransfer && e.dataTransfer.files.length) addPhotos(e.dataTransfer.files);
+  });
 
   // ── Progress / Toast ──────────────────────────────────────
   function showProgress(n, total) {
@@ -592,17 +901,17 @@
 
   // ── Helpers ───────────────────────────────────────────────
   function fmtSize(b) { return b > 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.round(b / 1e3) + ' KB'; }
+  function esc(s) { return s.replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
-  function makeCard(photo, idx) {
+  // ── Rendering (paginated + lazy-loaded thumbnails) ───────
+  function makeCard(p) {
     const card = document.createElement('div');
     card.className = 'photo-card';
-    card.dataset.id = photo.id;
-    const src = (photo.url && !photo.offline) ? photo.url : '';
-    const n = photo.name.replace(/"/g, '&quot;').replace(/</g, '&lt;');
+    card.dataset.id = p.id;
+    const n = esc(p.name);
     card.innerHTML = `
       <div class="photo-frame">
-        ${src ? `<img src="${src}" alt="${n}" loading="lazy" />`
-              : `<div class="offline-placeholder"><span>📷</span><small>Re-upload to view</small></div>`}
+        <img alt="${n}" />
         <div class="photo-overlay">
           <div class="po-name">${n}</div>
           <div class="po-actions">
@@ -613,44 +922,103 @@
       </div>
       <div class="photo-meta">
         <p>${n}</p>
-        <p>${photo.date} · ${fmtSize(photo.size || 0)}</p>
+        <p>${p.date} · ${fmtSize(p.size || 0)}</p>
       </div>`;
-    card.querySelector('.view-btn').addEventListener('click', e => { e.stopPropagation(); openLightbox(idx, true); });
-    card.querySelector('.del').addEventListener('click', e => deletePhoto(photo.id, e));
-    card.addEventListener('click', () => openLightbox(idx, true));
+    card.querySelector('.view-btn').addEventListener('click', e => { e.stopPropagation(); openLightboxFor(p.id); });
+    card.querySelector('.del').addEventListener('click', e => deletePhoto(p.id, e));
+    card.addEventListener('click', () => openLightboxFor(p.id));
+    imgObserver.observe(card);
     return card;
   }
 
-  function render() {
-    const gallery = document.getElementById('gallery');
-    gallery.innerHTML = '';
+  function loadMore() {
+    if (renderedCount >= activeList.length) return;
+    const next = activeList.slice(renderedCount, renderedCount + PAGE_SIZE);
+    const frag = document.createDocumentFragment();
+    next.forEach(p => frag.appendChild(makeCard(p)));
+    document.getElementById('gallery').appendChild(frag);
+    renderedCount += next.length;
+  }
 
-    if (photos.length === 0) {
-      document.getElementById('collection-section').style.display = 'none';
-      document.getElementById('empty').classList.add('visible');
-    } else {
-      document.getElementById('collection-section').style.display = 'block';
-      document.getElementById('empty').classList.remove('visible');
-      sortedPhotos().forEach((p, i) => gallery.appendChild(makeCard(p, i)));
-      document.getElementById('sec-count').textContent =
-        `${photos.length} image${photos.length !== 1 ? 's' : ''} · stored locally`;
-    }
+  function resetAndRender() {
+    activeList = computeList();
+    renderedCount = 0;
+    document.getElementById('gallery').innerHTML = '';
+    loadMore();
+    updateChrome();
+  }
 
-    // Stats
-    const total = photos.reduce((s, p) => s + (p.size || 0), 0);
-    document.getElementById('stat-count').textContent = photos.length;
+  function lastAddedDate() {
+    if (!photosMeta.length) return '—';
+    return photosMeta.reduce((a, b) => (b.seq > a.seq ? b : a), photosMeta[0]).date;
+  }
+
+  function updateChrome() {
+    const totalCount = photosMeta.length;
+    const has = totalCount > 0;
+
+    document.getElementById('collection-section').style.display = has ? 'block' : 'none';
+    document.getElementById('empty').classList.toggle('visible', !has);
+
+    document.getElementById('sec-count').textContent = searchQuery
+      ? `${activeList.length} of ${totalCount} image${totalCount !== 1 ? 's' : ''}`
+      : `${totalCount} image${totalCount !== 1 ? 's' : ''} · stored on this device`;
+
+    const total = photosMeta.reduce((s, p) => s + (p.size || 0), 0);
+    document.getElementById('stat-count').textContent = totalCount;
     document.getElementById('stat-size').textContent  = fmtSize(total);
-    document.getElementById('stat-date').textContent  = photos.length ? photos[photos.length - 1].date : '—';
-    document.getElementById('stats-bar').classList.toggle('visible', photos.length > 0);
+    document.getElementById('stat-date').textContent  = lastAddedDate();
+    document.getElementById('stats-bar').classList.toggle('visible', has);
 
-    // Header buttons
-    const has = photos.length > 0, many = photos.length > 1;
+    const many = totalCount > 1;
     document.getElementById('btn-clear').style.display    = has  ? '' : 'none';
     document.getElementById('btn-random').style.display   = many ? '' : 'none';
     document.getElementById('rand-divider').style.display = many ? '' : 'none';
+
+    const noResults = has && activeList.length === 0;
+    document.getElementById('no-results').classList.toggle('visible', noResults);
+    if (noResults) document.getElementById('nr-sub').textContent = `Nothing found for “${searchQuery}”`;
   }
 
-  loadFromStorage();
+  // ── Observers ─────────────────────────────────────────────
+  function setupObservers() {
+    imgObserver = new IntersectionObserver(entries => {
+      entries.forEach(async entry => {
+        if (!entry.isIntersecting) return;
+        imgObserver.unobserve(entry.target);
+        const id = entry.target.dataset.id;
+        const url = await getThumbUrl(id);
+        if (url) {
+          const img = entry.target.querySelector('img');
+          img.addEventListener('load', () => entry.target.classList.add('loaded'), { once: true });
+          img.src = url;
+        }
+      });
+    }, { rootMargin: '450px 0px' });
+
+    sentinelObserver = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && renderedCount < activeList.length) loadMore();
+    }, { rootMargin: '600px 0px' });
+    sentinelObserver.observe(document.getElementById('scroll-sentinel'));
+  }
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    searchQuery = e.target.value.trim();
+    resetAndRender();
+  });
+
+  // ── Init ──────────────────────────────────────────────────
+  async function init() {
+    try {
+      db = await openDB();
+      photosMeta = await idbGetAll('meta');
+    } catch {
+      showToast('This browser does not support local storage');
+    }
+    setupObservers();
+    resetAndRender();
+  }
+  init();
 </script>
 </body>
 </html>
